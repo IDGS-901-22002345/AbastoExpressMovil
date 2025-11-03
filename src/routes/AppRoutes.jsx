@@ -1,31 +1,57 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Profile from "../pages/Profile";
 import AppLayout from "../layouts/AppLayout";
+import LayoutDefault from "../layouts/LayoutDefault";
+import { loginAction } from "../context/Auth/loginAction";
+import { authLoader } from "../context/Auth/authLoader";
+import Productos from "../pages/Productos";
+import { tiendaLoader } from "../context/Tienda/tiendaLoader";
+import Tienda from "../pages/Tienda";
+import TiendaCreate from "../components/Tienda/TiendaCreate";
+import { createTiendaAction } from "../context/Tienda/tiendaAction";
 
-const AppRoutes = ({ isAuthenticated }) => {
-  return (
-    <Routes>
-      {/* Página pública */}
-      <Route path="/login" element={<Login />} />
-
-      {/* Layout protegido */}
-      <Route
-        path="/"
-        element={
-          isAuthenticated ? <AppLayout /> : <Navigate to="/login" replace />
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="perfil" element={<Profile />} />
-      </Route>
-
-      {/* Redirección por defecto */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
-};
-
-export default AppRoutes;
+export const AppRoutes = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppLayout />,
+    loader: authLoader,
+    children: [
+      {
+        path: "",
+        element: <Dashboard />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "productos",
+        element: <Productos />,
+      },
+      {
+        path: "tiendas",
+        loader: tiendaLoader,
+        element: <Tienda />,
+      },
+      {
+        path: "tiendas/crear",
+        element: <TiendaCreate />,
+        action: createTiendaAction,
+      },
+    ],
+  },
+  {
+    path: "/login",
+    element: <LayoutDefault />,
+    action: loginAction,
+    children: [
+      {
+        path: "",
+        element: <Login />,
+      },
+    ],
+  },
+]);
