@@ -9,17 +9,17 @@ import {
   Paper,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Form } from "react-router-dom";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <Box className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <Box className="min-h-screen flex items-center justify-center bg-green-50 px-4">
       <Paper
         elevation={8}
         className="w-full max-w-md p-10 rounded-3xl shadow-2xl bg-white flex flex-col gap-6"
       >
-        {/* Logo */}
         <Box className="flex justify-center mb-8">
           <img
             src="/vite.svg"
@@ -28,27 +28,22 @@ export default function Login() {
           />
         </Box>
 
-        {/* Título */}
         <Typography
           variant="h4"
           fontWeight={700}
-          className="text-center text-green-700 mb-10"
+          className="text-center text-green-700 mb-2"
         >
           Inicia sesión
         </Typography>
 
-        {/* Formulario */}
-        <Box
-          component="form"
-          noValidate
-          autoComplete="off"
-          className="flex flex-col  gap-6"
-        >
+        <Form method="post" replace className="flex flex-col gap-6">
           <TextField
             fullWidth
             label="Correo electrónico"
             variant="outlined"
             type="email"
+            name="email"
+            required
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "0.75rem",
@@ -64,6 +59,8 @@ export default function Login() {
             label="Contraseña"
             variant="outlined"
             type={showPassword ? "text" : "password"}
+            name="password"
+            required
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "0.75rem",
@@ -84,6 +81,7 @@ export default function Login() {
           />
 
           <Button
+            type="submit"
             fullWidth
             variant="contained"
             sx={{
@@ -104,7 +102,7 @@ export default function Login() {
           >
             ¿Olvidaste tu contraseña?
           </Typography>
-        </Box>
+        </Form>
       </Paper>
     </Box>
   );

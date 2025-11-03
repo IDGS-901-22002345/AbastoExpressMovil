@@ -1,15 +1,16 @@
-import React, { useState } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  Outlet,
+  useNavigate,
+  useLoaderData,
+  useLocation,
+} from "react-router-dom";
 import {
   Box,
   Typography,
   IconButton,
   Menu,
   MenuItem,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Divider,
   Drawer,
   useMediaQuery,
@@ -22,8 +23,8 @@ import {
   ChevronRight,
   Inventory as InventoryIcon,
   Receipt as ReceiptIcon,
-  People as PeopleIcon,
   Group as GroupIcon,
+  People as PeopleIcon,
 } from "@mui/icons-material";
 
 export default function AppLayout() {
@@ -31,24 +32,65 @@ export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const open = Boolean(anchorEl);
+  const user = useLoaderData();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const isMobile = useMediaQuery("(max-width:768px)");
-  const navigate = useNavigate();
   const handleProfileClick = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
+  const handleClose = () => {
+    setAnchorEl(null);
+    navigate("/profile");
+  };
+
   const handleLogout = () => {
     setAnchorEl(null);
+    localStorage.removeItem("token");
     navigate("/login");
   };
   const toggleMobileSidebar = () => setMobileOpen(!mobileOpen);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const navItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
-    { text: "Productos", icon: <InventoryIcon />, path: "/productos" },
-    { text: "Pedidos", icon: <ReceiptIcon />, path: "/pedidos" },
-    { text: "Empleados", icon: <PeopleIcon />, path: "/empleados" },
+  useEffect(() => {
+    setActiveItem(location.pathname);
+  }, [location.pathname]);
+
+  const allNavItems = [
+    {
+      text: "Dashboard",
+      icon: <DashboardIcon />,
+      path: "/",
+      roles: ["ADMINTIENDA"],
+    },
+    {
+      text: "Productos",
+      icon: <InventoryIcon />,
+      path: "/productos",
+      roles: ["ADMINTIENDA", "EMPLEADO"],
+    },
+    {
+      text: "Pedidos",
+      icon: <ReceiptIcon />,
+      path: "/pedidos",
+      roles: ["EMPLEADO"],
+    },
+    {
+      text: "Empleados",
+      icon: <PeopleIcon />,
+      path: "/empleados",
+      roles: ["ADMINTIENDA"],
+    },
+    {
+      text: "Tiendas",
+      icon: <GroupIcon />,
+      path: "/tiendas",
+      roles: ["SUPERADMIN"],
+    },
   ];
+
+  const navItems = allNavItems.filter((item) => item.roles.includes(user?.rol));
+
+  const [activeItem, setActiveItem] = useState(navItems[0].path);
 
   const shouldShowText = isMobile || sidebarOpen;
 
@@ -56,7 +98,6 @@ export default function AppLayout() {
     <Box className="h-full bg-green-700 text-white flex flex-col p-4">
       {/* Header sidebar con logo */}
       <Box className="flex items-center justify-between mb-4">
-        {/* Ajuste para centrar el logo al contraer */}
         <Box
           className={`transition-all duration-300 overflow-hidden ${
             sidebarOpen ? "w-auto" : "flex-1 flex justify-center"
@@ -78,31 +119,33 @@ export default function AppLayout() {
 
       <Divider className="mb-4 border-white/40" />
 
-      <List>
-        {navItems.map((item, index) => (
-          <React.Fragment key={item.text}>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              className={`rounded-lg mb-2 transition-all duration-200 hover:bg-[#15803d] hover:shadow-lg ${
-                !sidebarOpen ? "justify-center" : ""
+      {/* Botones personalizados */}
+      <div className="py-2">
+        {navItems.map((item) => {
+          const isActive = activeItem === item.path;
+          return (
+            <button
+              key={item.text}
+              onClick={() => {
+                setActiveItem(item.path);
+                navigate(item.path);
+                if (isMobile) toggleMobileSidebar();
+              }}
+              className={`flex items-center w-full p-3 rounded-lg space-x-3 text-sm font-medium transition-all duration-200
+              ${
+                isActive
+                  ? "bg-green-600 text-white border-l-4 border-green-300"
+                  : "text-green-200 hover:bg-green-700 hover:text-white"
               }`}
             >
-              <ListItemIcon sx={{ color: "#FFFFFF" }}>{item.icon}</ListItemIcon>
-              {/* Se usa la nueva variable 'shouldShowText' */}
-              {shouldShowText && (
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ className: "font-medium" }}
-                />
-              )}
-            </ListItemButton>
-            {(index === 2 || index === 4) && (
-              <Divider className="my-2 border-white/40" />
-            )}
-          </React.Fragment>
-        ))}
-      </List>
+              <span className="flex items-center justify-center w-6">
+                {item.icon}
+              </span>
+              {shouldShowText && <span>{item.text}</span>}
+            </button>
+          );
+        })}
+      </div>
     </Box>
   );
 
@@ -150,7 +193,7 @@ export default function AppLayout() {
             >
               <AccountCircle className="text-[#16A34A]" fontSize="large" />
               <Typography className="text-[#16A34A] font-medium">
-                Tom Cook
+                {user?.nombreCompleto || "Usuario"}
               </Typography>
             </IconButton>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
