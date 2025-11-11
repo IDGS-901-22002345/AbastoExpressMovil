@@ -12,6 +12,14 @@ import { tiendaLoader } from "../context/Tienda/tiendaLoader";
 import Tienda from "../pages/Tienda";
 import TiendaCreate from "../components/Tienda/TiendaCreate";
 import { createTiendaAction } from "../context/Tienda/tiendaAction";
+import Empleado from "../pages/Empleado";
+import { empleadosLoader } from "../context/Empleado/empleadoLoader";
+import { createEmpleadoAction, deleteEmpleadoAction, updateEmpleadoAction } from "../context/Empleado/empleadoAction";
+import { productoByIdLoader, productosLoader } from "../context/Productos/productoLoader";
+import { createProductoAction, deleteProductoAction, updateProductoAction } from "../context/Productos/productoAction";
+import ProductoCreate from "../components/Productos/ProductoCreate";
+import ProductoEdit from "../components/Productos/ProductoEdit";
+import Inventario from "../pages/Inventario";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -28,10 +36,6 @@ export const AppRoutes = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: "productos",
-        element: <Productos />,
-      },
-      {
         path: "tiendas",
         loader: tiendaLoader,
         element: <Tienda />,
@@ -41,6 +45,45 @@ export const AppRoutes = createBrowserRouter([
         element: <TiendaCreate />,
         action: createTiendaAction,
       },
+      {
+        path: "empleados",
+        loader: empleadosLoader,
+        element: <Empleado />,
+      },
+      {
+        path: "empleados/crear",
+        action: createEmpleadoAction,
+      },
+      {
+        path: "empleados/:id/editar",
+        action: updateEmpleadoAction, 
+      },
+      {
+        path: "empleados/:id/eliminar",
+        action: deleteEmpleadoAction,
+      },
+      {
+        path: "productos",
+        loader: productosLoader,
+        element: <Productos />,
+      },
+      {
+        path: "productos/crear",
+        element: <ProductoCreate />,
+        action: createProductoAction,
+      },
+      {
+        path: "productos/:id/editar",
+        element: <ProductoEdit />,
+        loader: productoByIdLoader,
+        action: updateProductoAction,
+      },
+      {
+        path: "productos/:id/eliminar",
+        action: deleteProductoAction,
+      },
+
+      
     ],
   },
   {
