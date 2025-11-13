@@ -1,20 +1,55 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
   IconButton,
   Typography,
   Paper,
   useMediaQuery,
+  Tooltip,
+  Switch,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { DataGrid } from "@mui/x-data-grid";
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
+import { toast } from "react-toastify";
+import { httpAPIPut } from "../../src/services/apiService";
 
 const Tienda = () => {
   const tiendas = useLoaderData();
-  const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
+  const isMobile = useMediaQuery("(max-width:768px)");
+  const [loading, setLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState({});
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await revalidator.revalidate();
+    setLoading(false);
+  };
+
+  const handleToggleActiva = async (tiendaId, currentStatus) => {
+    setUpdatingStatus((prev) => ({ ...prev, [tiendaId]: true }));
+
+    try {
+      const response = await httpAPIPut(`/tienda/status/${tiendaId}`, {
+        activa: !currentStatus,
+      });
+
+      toast.success(
+        response.message || 
+        `Tienda ${!currentStatus ? "activada" : "desactivada"} correctamente`
+      );
+      
+      await revalidator.revalidate();
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      toast.error(error.message || "Error al cambiar el estado de la tienda");
+    } finally {
+      setUpdatingStatus((prev) => ({ ...prev, [tiendaId]: false }));
+    }
+  };
 
   const columns = [
     {
@@ -42,25 +77,34 @@ const Tienda = () => {
       headerClassName: "header-green",
     },
     {
-      field: "activa",
-      headerName: "Activa",
-      flex: 0.5,
-      renderCell: (params) => (params.value ? "✅" : "❌"),
+      field: "categorias",
+      headerName: "Categorías",
+      flex: 1,
       headerClassName: "header-green",
+      renderCell: (params) =>
+        params.value?.length
+          ? params.value.map((cat) => cat.nombre).join(", ")
+          : "—",
     },
-    // {
-    //   field: "acciones",
-    //   headerName: "Acciones",
-    //   flex: 0.8,
-    //   sortable: false,
-    //   filterable: false,
-    //   renderCell: () => (
-    //     <Button variant="outlined" size="small">
-    //       Editar
-    //     </Button>
-    //   ),
-    //   headerClassName: "header-green",
-    // },
+    {
+      field: "activa",
+      headerName: "Estado",
+      flex: 0.7,
+      headerClassName: "header-green",
+      renderCell: (params) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={params.value}
+            onChange={() => handleToggleActiva(params.row.id, params.value)}
+            disabled={updatingStatus[params.row.id]}
+            color="success"
+          />
+          <span className="text-sm">
+            {params.value ? "Activa" : "Inactiva"}
+          </span>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -79,14 +123,24 @@ const Tienda = () => {
           >
             Agregar
           </Button>
-          <IconButton color="primary" onClick={() => console.log("Actualizar")}>
-            <RefreshIcon />
-          </IconButton>
+          <Tooltip title="Actualizar lista">
+            <span>
+              <IconButton
+                color="primary"
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                <RefreshIcon
+                  className={loading ? "animate-spin text-green-700" : ""}
+                />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
       </div>
 
       {/* Tabla */}
-      <div style={{ height: isMobile ? 400 : 500, width: "100%" }}>
+      <div style={{ height: isMobile ? 420 : 520, width: "100%" }}>
         <DataGrid
           rows={tiendas || []}
           columns={columns}
