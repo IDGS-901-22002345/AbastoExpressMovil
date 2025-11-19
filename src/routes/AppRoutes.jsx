@@ -14,12 +14,31 @@ import TiendaCreate from "../components/Tienda/TiendaCreate";
 import { createTiendaAction } from "../context/Tienda/tiendaAction";
 import Empleado from "../pages/Empleado";
 import { empleadosLoader } from "../context/Empleado/empleadoLoader";
-import { createEmpleadoAction, deleteEmpleadoAction, updateEmpleadoAction } from "../context/Empleado/empleadoAction";
-import { productoByIdLoader, productosLoader } from "../context/Productos/productoLoader";
-import { createProductoAction, deleteProductoAction, updateProductoAction } from "../context/Productos/productoAction";
+import {
+  createEmpleadoAction,
+  deleteEmpleadoAction,
+  updateEmpleadoAction,
+} from "../context/Empleado/empleadoAction";
+import {
+  productoByIdLoader,
+  productosLoader,
+} from "../context/Productos/productoLoader";
+import {
+  createProductoAction,
+  deleteProductoAction,
+  updateProductoAction,
+} from "../context/Productos/productoAction";
 import ProductoCreate from "../components/Productos/ProductoCreate";
 import ProductoEdit from "../components/Productos/ProductoEdit";
 import Inventario from "../pages/Inventario";
+import Movimientos from "../pages/Movimientos";
+import { movimientosLoader } from "../context/movimientos/movimientoLoader";
+import { createMovimientoAction } from "../context/movimientos/movimientoAction";
+import { inventarioLoader } from "../context/inventario/inventarioLoader";
+import Pedidos from "../pages/Pedidos";
+import { pedidosLoader } from "../context/Pedidos/pedidosLoader";
+import { perfilLoader } from "../context/perfil/perfilLoader";
+import { perfilActions } from "../context/perfil/perfilActions";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -34,6 +53,8 @@ export const AppRoutes = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
+        loader: perfilLoader,
+        action: perfilActions,
       },
       {
         path: "tiendas",
@@ -56,11 +77,16 @@ export const AppRoutes = createBrowserRouter([
       },
       {
         path: "empleados/:id/editar",
-        action: updateEmpleadoAction, 
+        action: updateEmpleadoAction,
       },
       {
         path: "empleados/:id/eliminar",
         action: deleteEmpleadoAction,
+      },
+      {
+        path: "pedidos",
+        element: <Pedidos />,
+        loader: pedidosLoader,
       },
       {
         path: "productos",
@@ -82,8 +108,22 @@ export const AppRoutes = createBrowserRouter([
         path: "productos/:id/eliminar",
         action: deleteProductoAction,
       },
-
-      
+      {
+        path: "inventario",
+        element: <Inventario />,
+        loader: inventarioLoader,
+      },
+      {
+        path: "movimientos",
+        loader: movimientosLoader,
+        element: <Movimientos />,
+        children: [
+          {
+            path: "crear",
+            action: createMovimientoAction,
+          },
+        ],
+      },
     ],
   },
   {
