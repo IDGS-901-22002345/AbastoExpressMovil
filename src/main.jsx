@@ -8,9 +8,12 @@ import { CssBaseline } from "@mui/material";
 import { ToastContainer } from "react-toastify";
 import { RouterProvider } from "react-router-dom";
 import { AppRoutes } from "./routes/AppRoutes";
+import ReloadPrompt from './ReloadPrompt.jsx'
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <ReloadPrompt />
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ToastContainer position="top-right" autoClose={3000} />
