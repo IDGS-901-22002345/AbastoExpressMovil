@@ -22,9 +22,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Inventory as InventoryIcon,
-  Receipt as ReceiptIcon,
-  Group as GroupIcon,
   People as PeopleIcon,
+  ProductionQuantityLimits as ProductosIcon,
+  ShoppingCartCheckout as PedidosIcon,
+  CompareArrows as MovimientosIcon,
+  Store as TiendasIcon,
 } from "@mui/icons-material";
 
 export default function AppLayout() {
@@ -35,14 +37,12 @@ export default function AppLayout() {
   const user = useLoaderData();
   const navigate = useNavigate();
   const location = useLocation();
-
   const isMobile = useMediaQuery("(max-width:768px)");
-  const handleProfileClick = (event) => setAnchorEl(event.currentTarget);
+  const handleProfileClick = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => {
     setAnchorEl(null);
     navigate("/profile");
   };
-
   const handleLogout = () => {
     setAnchorEl(null);
     localStorage.removeItem("token");
@@ -64,15 +64,27 @@ export default function AppLayout() {
     },
     {
       text: "Productos",
-      icon: <InventoryIcon />,
+      icon: <ProductosIcon />,
       path: "/productos",
-      roles: ["ADMINTIENDA", "EMPLEADO"],
+      roles: ["ADMINTIENDA"],
     },
     {
       text: "Pedidos",
-      icon: <ReceiptIcon />,
+      icon: <PedidosIcon />,
       path: "/pedidos",
       roles: ["EMPLEADO"],
+    },
+    {
+      text: "Inventario",
+      icon: <InventoryIcon />,
+      path: "/inventario",
+      roles: ["ADMINTIENDA"],
+    },
+    {
+      text: "Entradas/Salidas",
+      icon: <MovimientosIcon />,
+      path: "/movimientos",
+      roles: ["ADMINTIENDA", "EMPLEADO"],
     },
     {
       text: "Empleados",
@@ -82,21 +94,18 @@ export default function AppLayout() {
     },
     {
       text: "Tiendas",
-      icon: <GroupIcon />,
+      icon: <TiendasIcon />,
       path: "/tiendas",
       roles: ["SUPERADMIN"],
     },
   ];
 
   const navItems = allNavItems.filter((item) => item.roles.includes(user?.rol));
-
   const [activeItem, setActiveItem] = useState(navItems[0].path);
-
   const shouldShowText = isMobile || sidebarOpen;
 
   const sidebarContent = (
     <Box className="h-full bg-green-700 text-white flex flex-col p-4">
-      {/* Header sidebar con logo */}
       <Box className="flex items-center justify-between mb-4">
         <Box
           className={`transition-all duration-300 overflow-hidden ${
@@ -105,7 +114,6 @@ export default function AppLayout() {
         >
           <img src="/vite.svg" alt="Logo" className="w-8 h-8" />
         </Box>
-
         {!isMobile && (
           <IconButton onClick={toggleSidebar}>
             {sidebarOpen ? (
@@ -116,10 +124,7 @@ export default function AppLayout() {
           </IconButton>
         )}
       </Box>
-
       <Divider className="mb-4 border-white/40" />
-
-      {/* Botones personalizados */}
       <div className="py-2">
         {navItems.map((item) => {
           const isActive = activeItem === item.path;
@@ -131,8 +136,7 @@ export default function AppLayout() {
                 navigate(item.path);
                 if (isMobile) toggleMobileSidebar();
               }}
-              className={`flex items-center w-full p-3 rounded-lg space-x-3 text-sm font-medium transition-all duration-200
-              ${
+              className={`flex items-center w-full p-3 rounded-lg space-x-3 text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? "bg-green-600 text-white border-l-4 border-green-300"
                   : "text-green-200 hover:bg-green-700 hover:text-white"
@@ -151,7 +155,6 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#F7F7F7]">
-      {/* Sidebar desktop */}
       {!isMobile && (
         <Box
           className={`transition-all duration-300 ${
@@ -161,8 +164,6 @@ export default function AppLayout() {
           {sidebarContent}
         </Box>
       )}
-
-      {/* Sidebar mobile */}
       {isMobile && (
         <Drawer
           open={mobileOpen}
@@ -173,10 +174,7 @@ export default function AppLayout() {
           {sidebarContent}
         </Drawer>
       )}
-
-      {/* Main content */}
       <Box className="flex-1 flex flex-col">
-        {/* Header */}
         <Box className="bg-white shadow-md flex justify-between items-center px-4 md:px-6 h-16">
           {isMobile && (
             <IconButton onClick={toggleMobileSidebar}>
@@ -202,8 +200,6 @@ export default function AppLayout() {
             </Menu>
           </Box>
         </Box>
-
-        {/* Página actual */}
         <Box className="p-6 flex-1 overflow-auto">
           <Outlet />
         </Box>

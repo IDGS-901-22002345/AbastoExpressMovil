@@ -160,17 +160,6 @@ const Producto = () => {
       renderCell: (params) => `$${parseFloat(params.value).toFixed(2)}`,
     },
     {
-      field: "inventario",
-      headerName: "Stock",
-      flex: 0.5,
-      headerClassName: "header-green",
-      renderCell: (params) => {
-        const cantidad = params.value?.cantidad || 0;
-        const color = cantidad > 10 ? "success" : cantidad > 0 ? "warning" : "error";
-        return <Chip label={cantidad} color={color} size="small" />;
-      },
-    },
-    {
       field: "acciones",
       headerName: "Acciones",
       flex: 0.6,
