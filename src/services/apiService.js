@@ -8,7 +8,7 @@ export async function httpAPIBase(method, endpoint, body, headers = {}) {
       ...(!isFormData && { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
-       credentials: "include",
+      credentials: "include",
     },
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   });
@@ -41,3 +41,9 @@ export const httpAPIDelete = (endpoint, headers) =>
 
 export const httpAPIPatch = (endpoint, body, headers) =>
   httpAPIBase("PATCH", endpoint, body, headers);
+
+export const httpAPIPostFormData = (endpoint, body, headers) =>
+  httpAPIBase("POST", endpoint, body, headers);
+
+export const httpAPIPutFormData = (endpoint, body, headers) =>
+  httpAPIBase("PUT", endpoint, body, headers);

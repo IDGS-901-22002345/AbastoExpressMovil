@@ -101,11 +101,9 @@ export default function Dashboard() {
     ultimosPedidos = [],
   } = dashboardData;
 
-  // Validación y formato de datos
   const graficaFormateada = Array.isArray(grafica7Dias) ? grafica7Dias : [];
   const topProductosValidos = Array.isArray(top5Productos) ? top5Productos : [];
 
-  // Calcular tendencia de ventas
   const calcularTendencia = () => {
     if (graficaFormateada.length < 2)
       return { porcentaje: 0, esPositivo: true };
@@ -127,8 +125,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <Box className="mb-6 flex items-center justify-between">
+      <Box className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <Box>
           <Typography variant="h4" className="font-bold text-gray-800">
             Dashboard
@@ -141,12 +138,12 @@ export default function Dashboard() {
           variant="outlined"
           startIcon={<Refresh />}
           onClick={refreshDashboard}
+          className="whitespace-nowrap"
         >
           Actualizar
         </Button>
       </Box>
 
-      {/* Métricas principales */}
       <Grid container spacing={3} className="mb-6">
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
@@ -189,12 +186,10 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Gráficas */}
       <Grid container spacing={3} className="mb-6">
-        {/* Ventas últimos 7 días */}
         <Grid item xs={12} md={8}>
           <Paper className="p-4 rounded-xl shadow-lg" elevation={3}>
-            <Box className="flex items-center justify-between mb-4">
+            <Box className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
               <Typography variant="h6" className="font-bold">
                 Ventas de los últimos 7 días
               </Typography>
@@ -264,7 +259,6 @@ export default function Dashboard() {
           </Paper>
         </Grid>
 
-        {/* Top 5 productos */}
         <Grid item xs={12} md={4}>
           <Paper className="p-4 rounded-xl shadow-lg h-full" elevation={3}>
             <Typography variant="h6" className="font-bold mb-4">
@@ -275,14 +269,13 @@ export default function Dashboard() {
                 topProductosValidos.map((producto, index) => (
                   <Box
                     key={producto.productoId || index}
-                    className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg hover:shadow-md transition-shadow"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg hover:shadow-md transition-shadow gap-3"
                   >
                     <Box className="flex items-center gap-3">
-                      <Box className="relative">
-                        <Box className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center font-bold text-white shadow-md">
-                          {index + 1}
-                        </Box>
+                      <Box className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center font-bold text-white shadow-md">
+                        {index + 1}
                       </Box>
+
                       <Box>
                         <Typography
                           variant="body2"
@@ -295,10 +288,11 @@ export default function Dashboard() {
                         </Typography>
                       </Box>
                     </Box>
+
                     <Chip
                       label={`${producto.cantidadVendida || 0} vendidos`}
                       size="small"
-                      className="bg-blue-100 text-blue-700 font-semibold"
+                      className="bg-blue-100 text-blue-700 font-semibold self-start sm:self-auto"
                     />
                   </Box>
                 ))
@@ -321,7 +315,6 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Alertas de stock bajo */}
       {productosStockBajo.length > 0 && (
         <Box className="mb-6">
           <Alert severity="warning" className="mb-3">
@@ -333,148 +326,160 @@ export default function Dashboard() {
             </Typography>
           </Alert>
 
-          <TableContainer component={Paper} className="rounded-xl shadow-lg">
-            <Table>
-              <TableHead className="bg-gray-100">
-                <TableRow>
-                  <TableCell className="font-bold">Producto</TableCell>
-                  <TableCell className="font-bold" align="center">
-                    Stock Actual
-                  </TableCell>
-                  <TableCell className="font-bold" align="center">
-                    Stock Alerta
-                  </TableCell>
-                  <TableCell className="font-bold" align="center">
-                    Estado
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {productosStockBajo.map((item) => (
-                  <TableRow key={item.id} hover>
-                    <TableCell>
-                      <Box className="flex items-center gap-2">
-                        {item.producto?.imagen && (
-                          <Avatar
-                            src={item.producto.imagen}
-                            variant="rounded"
-                            className="w-10 h-10"
-                          />
-                        )}
-                        {item.producto?.nombre || "Sin nombre"}
-                      </Box>
+          <div className="overflow-x-auto">
+            <TableContainer component={Paper} className="rounded-xl shadow-lg">
+              <Table>
+                <TableHead className="bg-gray-100">
+                  <TableRow>
+                    <TableCell className="font-bold">Producto</TableCell>
+                    <TableCell className="font-bold" align="center">
+                      Stock Actual
                     </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={item.stockActual || 0}
-                        color="error"
-                        size="small"
-                      />
+                    <TableCell className="font-bold" align="center">
+                      Stock Alerta
                     </TableCell>
-                    <TableCell align="center">
-                      {item.stockAlerta || 0}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label="Crítico"
-                        color="error"
-                        size="small"
-                        variant="outlined"
-                      />
+                    <TableCell className="font-bold" align="center">
+                      Estado
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {productosStockBajo.map((item) => (
+                    <TableRow key={item.id} hover>
+                      <TableCell>
+                        <Box className="flex items-center gap-2">
+                          {item.producto?.imagen && (
+                            <Avatar
+                              src={item.producto.imagen}
+                              variant="rounded"
+                              className="w-10 h-10"
+                            />
+                          )}
+                          {item.producto?.nombre || "Sin nombre"}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={item.stockActual || 0}
+                          color="error"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        {item.stockAlerta || 0}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label="Crítico"
+                          color="error"
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
         </Box>
       )}
 
-      {/* Últimos pedidos */}
       <Paper className="p-4 rounded-xl shadow-lg" elevation={3}>
         <Typography variant="h6" className="font-bold mb-4">
           Últimos Pedidos
         </Typography>
-        <TableContainer>
-          <Table>
-            <TableHead className="bg-gray-100">
-              <TableRow>
-                <TableCell className="font-bold">ID</TableCell>
-                <TableCell className="font-bold">Cliente</TableCell>
-                <TableCell className="font-bold">Tienda</TableCell>
-                <TableCell className="font-bold" align="right">
-                  Total
-                </TableCell>
-                <TableCell className="font-bold" align="center">
-                  Estado
-                </TableCell>
-                <TableCell className="font-bold">Fecha</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {ultimosPedidos.length > 0 ? (
-                ultimosPedidos.map((pedido) => (
-                  <TableRow key={pedido.id} hover className="cursor-pointer">
-                    <TableCell>
-                      <Typography variant="body2" className="font-mono">
-                        #{pedido.id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" className="font-semibold">
-                          {pedido.cliente?.nombreCompleto || "Sin nombre"}
+
+        <div className="overflow-x-auto">
+          <TableContainer>
+            <Table>
+              <TableHead className="bg-gray-100">
+                <TableRow>
+                  <TableCell className="font-bold">ID</TableCell>
+                  <TableCell className="font-bold">Cliente</TableCell>
+                  <TableCell className="font-bold">Tienda</TableCell>
+                  <TableCell className="font-bold" align="right">
+                    Total
+                  </TableCell>
+                  <TableCell className="font-bold" align="center">
+                    Estado
+                  </TableCell>
+                  <TableCell className="font-bold">Fecha</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {ultimosPedidos.length > 0 ? (
+                  ultimosPedidos.map((pedido) => (
+                    <TableRow key={pedido.id} hover className="cursor-pointer">
+                      <TableCell>
+                        <Typography variant="body2" className="font-mono">
+                          #{pedido.id}
                         </Typography>
-                        <Typography variant="caption" className="text-gray-500">
-                          {pedido.cliente?.email || "Sin email"}
+                      </TableCell>
+
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" className="font-semibold">
+                            {pedido.cliente?.nombreCompleto || "Sin nombre"}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            className="text-gray-500"
+                          >
+                            {pedido.cliente?.email || "Sin email"}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      <TableCell>
+                        {pedido.tienda?.nombre || "Sin tienda"}
+                      </TableCell>
+
+                      <TableCell align="right" className="font-bold">
+                        {formatCurrency(pedido.total)}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Chip
+                          label={pedido.estado || "PENDIENTE"}
+                          color={estadoColors[pedido.estado] || "default"}
+                          size="small"
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        {pedido.createdAt
+                          ? new Date(pedido.createdAt).toLocaleDateString(
+                              "es-MX",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
+                          : "Sin fecha"}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      <Box className="py-8">
+                        <ShoppingCart className="text-gray-300 text-5xl mb-2 mx-auto" />
+                        <Typography variant="body2" className="text-gray-500">
+                          No hay pedidos recientes
+                        </Typography>
+                        <Typography variant="caption" className="text-gray-400">
+                          Los nuevos pedidos aparecerán aquí
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>
-                      {pedido.tienda?.nombre || "Sin tienda"}
-                    </TableCell>
-                    <TableCell align="right" className="font-bold">
-                      {formatCurrency(pedido.total)}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={pedido.estado || "PENDIENTE"}
-                        color={estadoColors[pedido.estado] || "default"}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {pedido.createdAt
-                        ? new Date(pedido.createdAt).toLocaleDateString(
-                          "es-MX",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )
-                        : "Sin fecha"}
-                    </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Box className="py-8">
-                      <ShoppingCart className="text-gray-300 text-5xl mb-2 mx-auto" />
-                      <Typography variant="body2" className="text-gray-500">
-                        No hay pedidos recientes
-                      </Typography>
-                      <Typography variant="caption" className="text-gray-400">
-                        Los nuevos pedidos aparecerán aquí
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
       </Paper>
     </div>
   );

@@ -9,15 +9,14 @@ import { ToastContainer } from "react-toastify";
 import { RouterProvider } from "react-router-dom";
 import { AppRoutes } from "./routes/AppRoutes";
 import { DashboardProvider } from "./context/dashboard/DashboardContext";
+import ReloadPrompt from "./ReloadPrompt.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ToastContainer position="top-right" autoClose={3000} />
-      <DashboardProvider>
-        <RouterProvider router={AppRoutes} />
-      </DashboardProvider>
+      <RouterProvider router={AppRoutes} />
     </ThemeProvider>
   </StrictMode>
 );
