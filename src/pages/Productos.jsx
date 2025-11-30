@@ -17,7 +17,8 @@ import {
   InputLabel,
   DialogContentText,
   Box,
-  InputAdornment,
+  Grid,
+  Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -26,7 +27,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData, useFetcher } from "react-router-dom";
@@ -177,12 +178,10 @@ const Producto = () => {
     data.append("descripcion", formData.descripcion);
     data.append("precio", formData.precio);
 
-    // Solo agregar si tienen valor
     if (formData.unidadMedida) {
       data.append("unidadMedida", formData.unidadMedida);
     }
 
-    // IMPORTANTE: Asegurarse de que categoriaId se envíe correctamente
     if (formData.categoriaId && formData.categoriaId !== "") {
       data.append("categoriaId", formData.categoriaId.toString());
       console.log("✅ categoriaId agregado:", formData.categoriaId);
@@ -257,11 +256,6 @@ const Producto = () => {
       });
       handleCloseDelete();
     }
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setSelectedCategoria("all");
   };
 
   const columns = [
@@ -350,76 +344,117 @@ const Producto = () => {
   return (
     <>
       <Paper className="p-4 md:p-6 rounded-xl shadow-md bg-white">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2 md:gap-0">
+        {/* Header con título y botones de acción */}
+        <Box className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
           <Typography variant="h4" className="text-green-700 font-bold">
             Productos
           </Typography>
-          <div className="flex gap-2">
+
+          <Box className="flex gap-2">
             <Button
               variant="contained"
               color="success"
               startIcon={<AddIcon />}
               onClick={handleOpenCreate}
+              size={isMobile ? "small" : "medium"}
             >
               Agregar
             </Button>
+
             <IconButton
               color="primary"
               onClick={() => window.location.reload()}
               title="Actualizar"
+              size={isMobile ? "small" : "medium"}
             >
               <RefreshIcon />
             </IconButton>
-          </div>
-        </div>
-
-        <Box className="mb-4 flex flex-col md:flex-row gap-3">
-          <TextField
-            placeholder="Buscar productos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            size="small"
-            className="flex-1"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <FormControl size="small" className="md:w-64">
-            <InputLabel>Categoría</InputLabel>
-            <Select
-              value={selectedCategoria}
-              onChange={(e) => setSelectedCategoria(e.target.value)}
-              label="Categoría"
-            >
-              <MenuItem value="all">Todas las categorías</MenuItem>
-              {categorias?.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {(searchTerm || selectedCategoria !== "all") && (
-            <Button
-              variant="outlined"
-              startIcon={<ClearIcon />}
-              onClick={handleClearFilters}
-            >
-              Limpiar
-            </Button>
-          )}
+          </Box>
         </Box>
 
-        <Typography variant="body2" color="text.secondary" className="mb-2">
-          Mostrando {productosFiltrados.length} de{" "}
-          {productosIniciales?.length || 0} productos
-        </Typography>
+        {/* Barra de búsqueda y filtros reorganizada */}
+        <Box className="mb-6 bg-gray-50 p-4 rounded-lg">
+          <Grid container spacing={2}>
+            {/* Búsqueda - Ocupa más espacio */}
+            <Grid item xs={12} md={8}>
+              <TextField
+                label="Buscar productos"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="small"
+                fullWidth
+                InputProps={{
+                  startAdornment: <SearchIcon className="mr-2 text-gray-400" />,
+                }}
+                placeholder="Nombre o descripción..."
+              />
+            </Grid>
+
+            {/* Filtro de categoría */}
+            <Grid item xs={12} md={4}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>
+                  <Box className="flex items-center gap-1">
+                    <FilterListIcon fontSize="small" />
+                    Categoría
+                  </Box>
+                </InputLabel>
+                <Select
+                  value={selectedCategoria}
+                  onChange={(e) => setSelectedCategoria(e.target.value)}
+                  label="Categoría"
+                >
+                  <MenuItem value="all">Todas las categorías</MenuItem>
+                  {categorias?.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      {cat.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+
+          {/* Indicador de filtros activos y contador */}
+          <Box className="mt-3 flex items-center justify-between flex-wrap gap-2">
+            <Box className="flex items-center gap-2 flex-wrap">
+              {(searchTerm || selectedCategoria !== "all") && (
+                <>
+                  <Typography variant="caption" className="text-gray-600">
+                    Filtros activos:
+                  </Typography>
+                  {searchTerm && (
+                    <Chip
+                      label={`Búsqueda: "${searchTerm}"`}
+                      size="small"
+                      onDelete={() => setSearchTerm("")}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  )}
+                  {selectedCategoria !== "all" && (
+                    <Chip
+                      label={`Categoría: ${
+                        categorias?.find(
+                          (c) => c.id === parseInt(selectedCategoria)
+                        )?.nombre || ""
+                      }`}
+                      size="small"
+                      onDelete={() => setSelectedCategoria("all")}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  )}
+                </>
+              )}
+            </Box>
+
+            <Typography variant="body2" className="text-gray-600">
+              <strong>{productosFiltrados.length}</strong> de{" "}
+              <strong>{productosIniciales?.length || 0}</strong> productos
+            </Typography>
+          </Box>
+        </Box>
 
         <div style={{ height: isMobile ? 400 : 500, width: "100%" }}>
           <DataGrid

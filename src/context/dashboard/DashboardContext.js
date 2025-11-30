@@ -13,6 +13,7 @@ export const useDashboard = () => {
 
 export const DashboardProvider = ({ children }) => {
     const [dashboardData, setDashboardData] = useState(null);
+    const [userRole, setUserRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -24,6 +25,7 @@ export const DashboardProvider = ({ children }) => {
 
             if (response.status === "success") {
                 setDashboardData(response.data);
+                setUserRole(response.rol);
             } else {
                 throw new Error(response.error || "Error al cargar dashboard");
             }
@@ -45,6 +47,7 @@ export const DashboardProvider = ({ children }) => {
 
     const value = {
         dashboardData,
+        userRole, 
         loading,
         error,
         refreshDashboard,
@@ -52,4 +55,3 @@ export const DashboardProvider = ({ children }) => {
 
     return createElement(DashboardContext.Provider, { value }, children);
 };
-
