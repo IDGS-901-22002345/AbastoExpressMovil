@@ -60,7 +60,7 @@ export default function AppLayout() {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/",
-      roles: ["ADMINTIENDA"],
+      roles: ["ADMINTIENDA", "EMPLEADO"],
     },
     {
       text: "Productos",
@@ -72,7 +72,7 @@ export default function AppLayout() {
       text: "Pedidos",
       icon: <PedidosIcon />,
       path: "/pedidos",
-      roles: ["EMPLEADO"],
+      roles: ["ADMINTIENDA", "EMPLEADO"],
     },
     {
       text: "Inventario",
@@ -112,7 +112,11 @@ export default function AppLayout() {
             sidebarOpen ? "w-auto" : "flex-1 flex justify-center"
           }`}
         >
-          <img src="/vite.svg" alt="Logo" className="w-8 h-8" />
+          <img
+            src="/android/android-launchericon-48-48.png"
+            alt="Logo"
+            className="w-8 h-8"
+          />
         </Box>
         {!isMobile && (
           <IconButton onClick={toggleSidebar}>

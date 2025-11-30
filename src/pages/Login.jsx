@@ -95,13 +95,6 @@ export default function Login() {
           >
             Entrar
           </Button>
-
-          <Typography
-            variant="body2"
-            className="text-center text-gray-500 hover:text-green-700 cursor-pointer transition-colors duration-200"
-          >
-            ¿Olvidaste tu contraseña?
-          </Typography>
         </Form>
       </Paper>
     </Box>
