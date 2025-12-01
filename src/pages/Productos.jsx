@@ -214,9 +214,6 @@ const Producto = () => {
   const handleUpdate = (e) => {
     e.preventDefault();
 
-    console.log("=== ACTUALIZANDO PRODUCTO ===");
-    console.log("formData:", formData);
-
     const data = new FormData();
     data.append("nombre", formData.nombre);
     data.append("descripcion", formData.descripcion);
@@ -226,7 +223,6 @@ const Producto = () => {
       data.append("unidadMedida", formData.unidadMedida);
     }
 
-    // Enviar categoriaId incluso si está vacío para poder eliminar la categoría
     if (formData.categoriaId !== undefined) {
       data.append("categoriaId", formData.categoriaId.toString());
     }

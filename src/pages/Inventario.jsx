@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   IconButton,
   Typography,
@@ -6,21 +6,55 @@ import {
   useMediaQuery,
   Avatar,
   Chip,
+  TextField,
+  InputAdornment,
+  Button,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ImageIcon from "@mui/icons-material/Image";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData } from "react-router-dom";
 
 const Inventario = () => {
-  const inventario = useLoaderData();
+  const inventarioCompleto = useLoaderData();
   const isMobile = useMediaQuery("(max-width:768px)");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showLowStock, setShowLowStock] = useState(false);
+  const [inventarioFiltrado, setInventarioFiltrado] =
+    useState(inventarioCompleto);
+
+  useEffect(() => {
+    let resultado = [...inventarioCompleto];
+
+    if (searchTerm.trim()) {
+      resultado = resultado.filter((item) =>
+        item.producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro de stock bajo
+    if (showLowStock) {
+      resultado = resultado.filter(
+        (item) => item.stockActual <= item.stockAlerta
+      );
+    }
+
+    setInventarioFiltrado(resultado);
+  }, [searchTerm, showLowStock, inventarioCompleto]);
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setShowLowStock(false);
+  };
 
   const columns = [
     {
       field: "producto",
       headerName: "Producto",
-      flex: 1,
+      flex: 1.2,
       headerClassName: "header-green",
       renderCell: (params) => (
         <div className="flex items-center gap-3">
@@ -62,6 +96,18 @@ const Inventario = () => {
         );
       },
     },
+    {
+      field: "unidadMedida",
+      headerName: "Unidad",
+      flex: 0.4,
+      headerClassName: "header-green",
+      renderCell: (params) => {
+        const unidad = params.row.producto.unidadMedida;
+        return (
+          <span className="font-medium text-gray-700">{unidad || "-"}</span>
+        );
+      },
+    },
   ];
 
   return (
@@ -72,18 +118,65 @@ const Inventario = () => {
             Inventario
           </Typography>
 
-          <IconButton
-            color="primary"
-            onClick={() => window.location.reload()}
-            title="Actualizar"
-          >
-            <RefreshIcon />
-          </IconButton>
+          <div className="flex items-center gap-3">
+            {/* Campo de Búsqueda */}
+            <TextField
+              label="Buscar por nombre"
+              variant="outlined"
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {/* Botón para Filtro de Stock Bajo */}
+            <Button
+              variant={showLowStock ? "contained" : "outlined"}
+              color="warning"
+              onClick={() => setShowLowStock(!showLowStock)}
+              size="small"
+            >
+              Stock Bajo
+            </Button>
+
+            {/* Botón de Limpiar Filtros */}
+            {(searchTerm || showLowStock) && (
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={handleClearFilters}
+                size="small"
+              >
+                Limpiar
+              </Button>
+            )}
+
+            {/* Botón de Actualizar */}
+            <IconButton
+              color="primary"
+              onClick={() => window.location.reload()}
+              title="Actualizar"
+            >
+              <RefreshIcon />
+            </IconButton>
+          </div>
         </div>
+
+        {/* Contador de resultados */}
+        <Typography variant="body2" color="text.secondary" className="mb-2">
+          Mostrando {inventarioFiltrado.length} de {inventarioCompleto.length}{" "}
+          productos
+        </Typography>
 
         <div style={{ height: isMobile ? 420 : 520, width: "100%" }}>
           <DataGrid
-            rows={inventario || []}
+            rows={inventarioFiltrado}
             columns={columns}
             pageSizeOptions={[5, 10, 20]}
             initialState={{
