@@ -33,11 +33,6 @@ const Movimientos = () => {
   const isMobile = useMediaQuery("(max-width:768px)");
   const fetcher = useFetcher();
 
-  // Debug temporal
-  console.log("🔍 Datos del loader:", loaderData);
-  console.log("📦 Productos disponibles:", productos);
-  console.log("📊 Cantidad de productos:", productos.length);
-
   const [openCreate, setOpenCreate] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
   const [selectedMovimiento, setSelectedMovimiento] = useState(null);
@@ -88,18 +83,21 @@ const Movimientos = () => {
 
   const handleCreate = (e) => {
     e.preventDefault();
-    
+
     const submitFormData = new FormData();
-    submitFormData.append("productoId", formData.productoId?.id || formData.productoId);
+    submitFormData.append(
+      "productoId",
+      formData.productoId?.id || formData.productoId
+    );
     submitFormData.append("tipo", formData.tipo);
     submitFormData.append("cantidad", formData.cantidad);
     if (formData.razon) {
       submitFormData.append("razon", formData.razon);
     }
 
-    fetcher.submit(submitFormData, { 
-      method: "post", 
-      action: "/movimientos/crear"
+    fetcher.submit(submitFormData, {
+      method: "post",
+      action: "/movimientos/crear",
     });
     handleCloseCreate();
   };
@@ -110,7 +108,7 @@ const Movimientos = () => {
       headerName: "Fecha",
       flex: 0.8,
       headerClassName: "header-green",
-      renderCell: (params) => 
+      renderCell: (params) =>
         new Date(params.value).toLocaleString("es-MX", {
           day: "2-digit",
           month: "2-digit",
@@ -124,8 +122,7 @@ const Movimientos = () => {
       headerName: "Producto",
       flex: 1.2,
       headerClassName: "header-green",
-      renderCell: (params) => 
-        params.row.inventario?.producto?.nombre || "N/A",
+      renderCell: (params) => params.row.inventario?.producto?.nombre || "N/A",
     },
     {
       field: "tipo",
@@ -139,29 +136,6 @@ const Movimientos = () => {
           size="small"
         />
       ),
-    },
-    {
-      field: "cantidad",
-      headerName: "Cantidad",
-      flex: 0.5,
-      headerClassName: "header-green",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "razon",
-      headerName: "Razón",
-      flex: 1.5,
-      headerClassName: "header-green",
-      renderCell: (params) => params.value || "Sin especificar",
-    },
-    {
-      field: "empleado",
-      headerName: "Empleado",
-      flex: 1,
-      headerClassName: "header-green",
-      renderCell: (params) => 
-        params.row.empleado?.nombreCompleto || "N/A",
     },
     {
       field: "acciones",
@@ -334,7 +308,8 @@ const Movimientos = () => {
 
             {formData.tipo === "SALIDA" && (
               <Alert severity="warning" className="mt-3">
-                Asegúrate de que hay suficiente stock antes de registrar una salida.
+                Asegúrate de que hay suficiente stock antes de registrar una
+                salida.
               </Alert>
             )}
           </DialogContent>
@@ -367,7 +342,9 @@ const Movimientos = () => {
                   Fecha y Hora
                 </Typography>
                 <Typography variant="body1" className="font-semibold">
-                  {new Date(selectedMovimiento.createdAt).toLocaleString("es-MX")}
+                  {new Date(selectedMovimiento.createdAt).toLocaleString(
+                    "es-MX"
+                  )}
                 </Typography>
               </div>
 
@@ -387,7 +364,11 @@ const Movimientos = () => {
                   </Typography>
                   <Chip
                     label={selectedMovimiento.tipo}
-                    color={selectedMovimiento.tipo === "ENTRADA" ? "success" : "error"}
+                    color={
+                      selectedMovimiento.tipo === "ENTRADA"
+                        ? "success"
+                        : "error"
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -422,7 +403,11 @@ const Movimientos = () => {
           )}
         </DialogContent>
         <DialogActions className="p-4">
-          <Button onClick={handleCloseDetail} variant="contained" color="primary">
+          <Button
+            onClick={handleCloseDetail}
+            variant="contained"
+            color="primary"
+          >
             Cerrar
           </Button>
         </DialogActions>

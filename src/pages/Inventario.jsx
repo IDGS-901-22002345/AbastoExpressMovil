@@ -44,7 +44,7 @@ const Inventario = () => {
     },
     {
       field: "stockActual",
-      headerName: "Stock",
+      headerName: "Stock Actual",
       flex: 0.4,
       headerClassName: "header-green",
       renderCell: (params) => {

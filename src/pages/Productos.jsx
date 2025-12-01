@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   IconButton,
@@ -11,48 +11,95 @@ import {
   DialogActions,
   TextField,
   Avatar,
-  Chip,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
+  DialogContentText,
+  Box,
+  InputAdornment,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData, useFetcher } from "react-router-dom";
 
 const UNIDADES_MEDIDA = ["KILO", "LITRO", "PIEZA", "CAJA", "TONELADA"];
 
 const Producto = () => {
-  const productos = useLoaderData();
+  const loaderData = useLoaderData();
+  const productosIniciales = loaderData?.producto?.productos || [];
+  const categorias = loaderData?.producto?.categorias || [];
+
   const isMobile = useMediaQuery("(max-width:768px)");
   const fetcher = useFetcher();
 
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [selectedProducto, setSelectedProducto] = useState(null);
+  const [productoToDelete, setProductoToDelete] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoria, setSelectedCategoria] = useState("all");
+  const [productosFiltrados, setProductosFiltrados] =
+    useState(productosIniciales);
 
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
     precio: "",
-    imagen: "",
     unidadMedida: "",
+    categoriaId: "",
   });
 
-  // Resetear formulario
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  useEffect(() => {
+    let filtered = productosIniciales;
+
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (producto) =>
+          producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (producto.descripcion &&
+            producto.descripcion
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    if (selectedCategoria !== "all") {
+      filtered = filtered.filter(
+        (producto) => producto.categoriaId === parseInt(selectedCategoria)
+      );
+    }
+
+    const sortedAndFiltered = [...filtered].sort((a, b) =>
+      a.nombre.localeCompare(b.nombre)
+    );
+
+    setProductosFiltrados(sortedAndFiltered);
+  }, [searchTerm, selectedCategoria, productosIniciales]);
+
   const resetForm = () => {
     setFormData({
       nombre: "",
       descripcion: "",
       precio: "",
-      imagen: "",
       unidadMedida: "",
+      categoriaId: "",
     });
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const handleOpenCreate = () => {
@@ -71,9 +118,10 @@ const Producto = () => {
       nombre: producto.nombre,
       descripcion: producto.descripcion || "",
       precio: producto.precio.toString(),
-      imagen: producto.imagen || "",
       unidadMedida: producto.unidadMedida || "",
+      categoriaId: producto.categoriaId || "",
     });
+    setImagePreview(producto.imagen);
     setOpenEdit(true);
   };
 
@@ -81,6 +129,16 @@ const Producto = () => {
     setOpenEdit(false);
     setSelectedProducto(null);
     resetForm();
+  };
+
+  const handleOpenDelete = (producto) => {
+    setProductoToDelete(producto);
+    setOpenDelete(true);
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+    setProductoToDelete(null);
   };
 
   const handleInputChange = (e) => {
@@ -91,30 +149,123 @@ const Producto = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
   const handleCreate = (e) => {
     e.preventDefault();
-    fetcher.submit(formData, { method: "post", action: "/productos/crear" });
+
+    console.log("=== ESTADO DEL FORMULARIO ===");
+    console.log("formData:", formData);
+
+    const data = new FormData();
+    data.append("nombre", formData.nombre);
+    data.append("descripcion", formData.descripcion);
+    data.append("precio", formData.precio);
+
+    // Solo agregar si tienen valor
+    if (formData.unidadMedida) {
+      data.append("unidadMedida", formData.unidadMedida);
+    }
+
+    // IMPORTANTE: Asegurarse de que categoriaId se envíe correctamente
+    if (formData.categoriaId && formData.categoriaId !== "") {
+      data.append("categoriaId", formData.categoriaId.toString());
+      console.log("✅ categoriaId agregado:", formData.categoriaId);
+    } else {
+      console.log("⚠️ categoriaId está vacío");
+    }
+
+    if (imageFile) {
+      data.append("imagen", imageFile);
+      console.log("✅ Imagen agregada:", imageFile.name);
+    } else {
+      console.log("⚠️ No hay imagen");
+    }
+
+    console.log("=== FORMDATA A ENVIAR ===");
+    for (let [key, value] of data.entries()) {
+      console.log(key, ":", value);
+    }
+
+    fetcher.submit(data, {
+      method: "post",
+      action: "/productos/crear",
+      encType: "multipart/form-data",
+    });
+
     handleCloseCreate();
   };
 
-  // Actualizar producto
   const handleUpdate = (e) => {
     e.preventDefault();
-    fetcher.submit(formData, {
+
+    console.log("=== ACTUALIZANDO PRODUCTO ===");
+    console.log("formData:", formData);
+
+    const data = new FormData();
+    data.append("nombre", formData.nombre);
+    data.append("descripcion", formData.descripcion);
+    data.append("precio", formData.precio);
+
+    if (formData.unidadMedida) {
+      data.append("unidadMedida", formData.unidadMedida);
+    }
+
+    // Enviar categoriaId incluso si está vacío para poder eliminar la categoría
+    if (formData.categoriaId !== undefined) {
+      data.append("categoriaId", formData.categoriaId.toString());
+    }
+
+    if (imageFile) {
+      data.append("imagen", imageFile);
+    }
+
+    if (!imagePreview && !imageFile) {
+      data.append("eliminarImagen", "true");
+    }
+
+    console.log("=== FORMDATA UPDATE ===");
+    for (let [key, value] of data.entries()) {
+      console.log(key, ":", value);
+    }
+
+    fetcher.submit(data, {
       method: "post",
       action: `/productos/${selectedProducto.id}/editar`,
+      encType: "multipart/form-data",
     });
+
     handleCloseEdit();
   };
 
-  // Eliminar producto
-  const handleDelete = (id, nombre) => {
-    if (window.confirm(`¿Estás seguro de eliminar el producto "${nombre}"?`)) {
+  const handleConfirmDelete = () => {
+    if (productoToDelete) {
       fetcher.submit(null, {
         method: "post",
-        action: `/productos/${id}/eliminar`,
+        action: `/productos/${productoToDelete.id}/eliminar`,
       });
+      handleCloseDelete();
     }
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategoria("all");
   };
 
   const columns = [
@@ -125,7 +276,11 @@ const Producto = () => {
       headerClassName: "header-green",
       renderCell: (params) =>
         params.value ? (
-          <Avatar src={params.value} alt={params.row.nombre} variant="rounded" />
+          <Avatar
+            src={params.value}
+            alt={params.row.nombre}
+            variant="rounded"
+          />
         ) : (
           <Avatar variant="rounded">
             <ImageIcon />
@@ -137,6 +292,13 @@ const Producto = () => {
       headerName: "Nombre",
       flex: 1,
       headerClassName: "header-green",
+    },
+    {
+      field: "categoria",
+      headerName: "Categoría",
+      flex: 0.8,
+      headerClassName: "header-green",
+      renderCell: (params) => params.row.categoria?.nombre || "Sin categoría",
     },
     {
       field: "descripcion",
@@ -179,7 +341,7 @@ const Producto = () => {
           <IconButton
             color="error"
             size="small"
-            onClick={() => handleDelete(params.row.id, params.row.nombre)}
+            onClick={() => handleOpenDelete(params.row)}
             title="Eliminar"
           >
             <DeleteIcon fontSize="small" />
@@ -192,7 +354,6 @@ const Producto = () => {
   return (
     <>
       <Paper className="p-4 md:p-6 rounded-xl shadow-md bg-white">
-        {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2 md:gap-0">
           <Typography variant="h4" className="text-green-700 font-bold">
             Productos
@@ -216,12 +377,59 @@ const Producto = () => {
           </div>
         </div>
 
-        {/* Tabla */}
+        <Box className="mb-4 flex flex-col md:flex-row gap-3">
+          <TextField
+            placeholder="Buscar productos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="small"
+            className="flex-1"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <FormControl size="small" className="md:w-64">
+            <InputLabel>Categoría</InputLabel>
+            <Select
+              value={selectedCategoria}
+              onChange={(e) => setSelectedCategoria(e.target.value)}
+              label="Categoría"
+            >
+              <MenuItem value="all">Todas las categorías</MenuItem>
+              {categorias?.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {(searchTerm || selectedCategoria !== "all") && (
+            <Button
+              variant="outlined"
+              startIcon={<ClearIcon />}
+              onClick={handleClearFilters}
+            >
+              Limpiar
+            </Button>
+          )}
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" className="mb-2">
+          Mostrando {productosFiltrados.length} de{" "}
+          {productosIniciales?.length || 0} productos
+        </Typography>
+
         <div style={{ height: isMobile ? 400 : 500, width: "100%" }}>
           <DataGrid
-            rows={productos || []}
+            rows={productosFiltrados}
             columns={columns}
-            pageSizeOptions={[5, 10, 20]}
+            pageSizeOptions={[5, 10, 20, 50]}
             initialState={{
               pagination: { paginationModel: { pageSize: 10, page: 0 } },
             }}
@@ -246,7 +454,7 @@ const Producto = () => {
         </div>
       </Paper>
 
-      {/* Modal Crear Producto */}
+      {/* Dialog Crear */}
       <Dialog
         open={openCreate}
         onClose={handleCloseCreate}
@@ -282,6 +490,25 @@ const Producto = () => {
             />
 
             <FormControl fullWidth margin="normal">
+              <InputLabel>Categoría</InputLabel>
+              <Select
+                name="categoriaId"
+                value={formData.categoriaId}
+                onChange={handleInputChange}
+                label="Categoría"
+              >
+                <MenuItem value="">
+                  <em>Sin categoría</em>
+                </MenuItem>
+                {categorias?.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth margin="normal">
               <InputLabel>Unidad de Medida</InputLabel>
               <Select
                 name="unidadMedida"
@@ -313,15 +540,49 @@ const Producto = () => {
               placeholder="0.00"
             />
 
-            <TextField
-              label="URL de la imagen"
-              name="imagen"
-              value={formData.imagen}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              placeholder="https://ejemplo.com/imagen.jpg (opcional)"
-            />
+            <Box className="mt-4">
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<CloudUploadIcon />}
+                fullWidth
+              >
+                Subir Imagen
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </Button>
+
+              {imagePreview && (
+                <Box className="mt-2 relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: "200px",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <IconButton
+                    onClick={handleRemoveImage}
+                    size="small"
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      backgroundColor: "white",
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </DialogContent>
           <DialogActions className="p-4">
             <Button onClick={handleCloseCreate} color="inherit">
@@ -334,13 +595,8 @@ const Producto = () => {
         </form>
       </Dialog>
 
-      {/* Modal Editar Producto */}
-      <Dialog
-        open={openEdit}
-        onClose={handleCloseEdit}
-        maxWidth="sm"
-        fullWidth
-      >
+      {/* Dialog Editar */}
+      <Dialog open={openEdit} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
         <DialogTitle className="text-green-700 font-bold">
           Editar Producto
         </DialogTitle>
@@ -365,6 +621,25 @@ const Producto = () => {
               multiline
               rows={3}
             />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Categoría</InputLabel>
+              <Select
+                name="categoriaId"
+                value={formData.categoriaId}
+                onChange={handleInputChange}
+                label="Categoría"
+              >
+                <MenuItem value="">
+                  <em>Sin categoría</em>
+                </MenuItem>
+                {categorias?.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <FormControl fullWidth margin="normal">
               <InputLabel>Unidad de Medida</InputLabel>
@@ -396,14 +671,49 @@ const Producto = () => {
               inputProps={{ min: "0", step: "0.01" }}
             />
 
-            <TextField
-              label="URL de la imagen"
-              name="imagen"
-              value={formData.imagen}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
+            <Box className="mt-4">
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<CloudUploadIcon />}
+                fullWidth
+              >
+                {imagePreview ? "Cambiar Imagen" : "Subir Imagen"}
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </Button>
+
+              {imagePreview && (
+                <Box className="mt-2 relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: "200px",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <IconButton
+                    onClick={handleRemoveImage}
+                    size="small"
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      backgroundColor: "white",
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </DialogContent>
           <DialogActions className="p-4">
             <Button onClick={handleCloseEdit} color="inherit">
@@ -414,6 +724,41 @@ const Producto = () => {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* Dialog Eliminar */}
+      <Dialog
+        open={openDelete}
+        onClose={handleCloseDelete}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle className="flex items-center gap-2 text-red-600">
+          <WarningAmberIcon />
+          Confirmar Eliminación
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que deseas eliminar el producto{" "}
+            <strong>"{productoToDelete?.nombre}"</strong>?
+          </DialogContentText>
+          <DialogContentText className="mt-2 text-gray-600">
+            Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="p-4">
+          <Button onClick={handleCloseDelete} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            autoFocus
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

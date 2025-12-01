@@ -87,21 +87,7 @@ const Pedidos = () => {
           <div className="font-semibold">
             {params.row.cliente.nombreCompleto}
           </div>
-          <div className="text-xs text-gray-500">
-            {params.row.cliente.email}
-          </div>
         </div>
-      ),
-    },
-    {
-      field: "total",
-      headerName: "Total",
-      flex: 0.7,
-      headerClassName: "header-green",
-      renderCell: (params) => (
-        <span className="font-semibold text-green-700">
-          ${parseFloat(params.value).toFixed(2)}
-        </span>
       ),
     },
     {
@@ -116,20 +102,6 @@ const Pedidos = () => {
           size="small"
         />
       ),
-    },
-    {
-      field: "createdAt",
-      headerName: "Fecha",
-      flex: 0.9,
-      headerClassName: "header-green",
-      renderCell: (params) =>
-        new Date(params.value).toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
     },
     {
       field: "acciones",
@@ -228,7 +200,6 @@ const Pedidos = () => {
                 </Typography>
 
                 <Box className="bg-gray-50 p-3 rounded space-y-2">
-                  {/* FIX: No meter Chip dentro de <Typography> */}
                   <Box className="flex items-center gap-2">
                     <Typography>
                       <strong>Estado:</strong>

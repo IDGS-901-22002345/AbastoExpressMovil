@@ -16,11 +16,13 @@ import {
   Select,
   MenuItem,
   Alert,
+  DialogContentText,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData, useFetcher } from "react-router-dom";
 
@@ -29,13 +31,13 @@ const Empleado = () => {
   const isMobile = useMediaQuery("(max-width:768px)");
   const fetcher = useFetcher();
 
-  // Estados para modales
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [selectedEmpleado, setSelectedEmpleado] = useState(null);
+  const [empleadoToDelete, setEmpleadoToDelete] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Estados para formularios
   const [formData, setFormData] = useState({
     nombreCompleto: "",
     email: "",
@@ -43,7 +45,6 @@ const Empleado = () => {
     rol: "",
   });
 
-  // Resetear formulario
   const resetForm = () => {
     setFormData({
       nombreCompleto: "",
@@ -54,19 +55,16 @@ const Empleado = () => {
     setShowPassword(false);
   };
 
-  // Abrir modal de crear
   const handleOpenCreate = () => {
     resetForm();
     setOpenCreate(true);
   };
 
-  // Cerrar modal de crear
   const handleCloseCreate = () => {
     setOpenCreate(false);
     resetForm();
   };
 
-  // Abrir modal de editar
   const handleOpenEdit = (empleado) => {
     setSelectedEmpleado(empleado);
     setFormData({
@@ -79,14 +77,22 @@ const Empleado = () => {
     setOpenEdit(true);
   };
 
-  // Cerrar modal de editar
   const handleCloseEdit = () => {
     setOpenEdit(false);
     setSelectedEmpleado(null);
     resetForm();
   };
 
-  // Manejar cambios en inputs
+  const handleOpenDelete = (empleado) => {
+    setEmpleadoToDelete(empleado);
+    setOpenDelete(true);
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+    setEmpleadoToDelete(null);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -95,14 +101,12 @@ const Empleado = () => {
     }));
   };
 
-  // Crear empleado
   const handleCreate = (e) => {
     e.preventDefault();
     fetcher.submit(formData, { method: "post", action: "/empleados/crear" });
     handleCloseCreate();
   };
 
-  // Actualizar empleado
   const handleUpdate = (e) => {
     e.preventDefault();
     const updateData = {
@@ -110,7 +114,6 @@ const Empleado = () => {
       email: formData.email,
       rol: formData.rol,
     };
-    // Solo incluir password si se cambió
     if (formData.password) {
       updateData.password = formData.password;
     }
@@ -121,13 +124,13 @@ const Empleado = () => {
     handleCloseEdit();
   };
 
-  // Eliminar empleado
-  const handleDelete = (id, nombre) => {
-    if (window.confirm(`¿Estás seguro de eliminar a ${nombre}?`)) {
+  const handleConfirmDelete = () => {
+    if (empleadoToDelete) {
       fetcher.submit(null, {
         method: "post",
-        action: `/empleados/${id}/eliminar`,
+        action: `/empleados/${empleadoToDelete.id}/eliminar`,
       });
+      handleCloseDelete();
     }
   };
 
@@ -191,9 +194,7 @@ const Empleado = () => {
           <IconButton
             color="error"
             size="small"
-            onClick={() =>
-              handleDelete(params.row.id, params.row.nombreCompleto)
-            }
+            onClick={() => handleOpenDelete(params.row)}
             title="Eliminar"
           >
             <DeleteIcon fontSize="small" />
@@ -340,12 +341,7 @@ const Empleado = () => {
       </Dialog>
 
       {/* Modal Editar Empleado */}
-      <Dialog
-        open={openEdit}
-        onClose={handleCloseEdit}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={openEdit} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
         <DialogTitle className="text-green-700 font-bold">
           Editar Empleado
         </DialogTitle>
@@ -415,6 +411,41 @@ const Empleado = () => {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* Modal Confirmar Eliminación */}
+      <Dialog
+        open={openDelete}
+        onClose={handleCloseDelete}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle className="flex items-center gap-2 text-red-600">
+          <WarningAmberIcon />
+          Confirmar Eliminación
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que deseas eliminar al empleado{" "}
+            <strong>{empleadoToDelete?.nombreCompleto}</strong>?
+          </DialogContentText>
+          <DialogContentText className="mt-2 text-gray-600">
+            Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="p-4">
+          <Button onClick={handleCloseDelete} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            autoFocus
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

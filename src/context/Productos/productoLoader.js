@@ -3,50 +3,68 @@ import { httpAPIGet } from "../../services/apiService";
 
 export async function productosLoader() {
   try {
-    const response = await httpAPIGet("/productos");
-    
-    if (response.status !== "success" || !response.data) {
-      throw new Error("Productos no encontrados");
-    }
-    
-    return response.data;
+    const [productosResponse, categoriasResponse] = await Promise.all([
+      httpAPIGet("/productos"),
+      httpAPIGet("/categorias-productos"),
+    ]);
+
+    console.log("productosResponse:", productosResponse);
+    console.log("categoriasResponse:", categoriasResponse);
+
+    return {
+      producto: {  
+        productos: productosResponse.data || [],
+        categorias: categoriasResponse.data || [],
+      }
+    };
   } catch (error) {
-    console.error("Error en productosLoader:", error);
-    
-    if (error.statusCode === 401 || error.status === 401) {
-      localStorage.removeItem("token");
-      return redirect("/login");
-    }
-    
-    if (error.statusCode === 403 || error.status === 403) {
-      return redirect("/dashboard");
-    }
-    
-    return [];
+    console.error("Error loading productos:", error);
+    return {
+      producto: {
+        productos: [],
+        categorias: [],
+      }
+    };
   }
 }
 
 export async function productoByIdLoader({ params }) {
   try {
-    const response = await httpAPIGet(`/productos/${params.id}`);
-    
-    if (response.status !== "success" || !response.data) {
+    const [productoResponse, categoriasResponse] = await Promise.all([
+      httpAPIGet(`/productos/${params.id}`),
+      httpAPIGet("/categorias-productos")
+    ]);
+
+    console.log("productoResponse:", productoResponse);
+    console.log("categoriasResponse:", categoriasResponse);
+
+    if (!productoResponse?.data) {
       throw new Error("Producto no encontrado");
     }
-    
-    return response.data;
+
+    if (!categoriasResponse?.data) {
+      throw new Error("Categorías no encontradas");
+    }
+
+    return {
+      producto: {
+        ...productoResponse.data,
+        categoriasProducto: categoriasResponse.data  
+      }
+    };
+
   } catch (error) {
     console.error("Error en productoByIdLoader:", error);
-    
-    if (error.statusCode === 401 || error.status === 401) {
+
+    if (error.status === 401) {
       localStorage.removeItem("token");
       return redirect("/login");
     }
-    
-    if (error.statusCode === 403 || error.statusCode === 404) {
+
+    if (error.status === 403 || error.status === 404) {
       return redirect("/productos");
     }
-    
+
     throw new Response("Error al cargar el producto", { status: 500 });
   }
 }
