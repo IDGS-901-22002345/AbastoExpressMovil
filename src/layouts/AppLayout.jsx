@@ -27,7 +27,8 @@ import {
   ShoppingCartCheckout as PedidosIcon,
   CompareArrows as MovimientosIcon,
   Store as TiendasIcon,
-  ReportProblem as ReportProblemIcon, 
+  ReportProblem as ReportProblemIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
 
 export default function AppLayout() {
@@ -85,6 +86,12 @@ export default function AppLayout() {
       text: "Mermas",
       icon: <ReportProblemIcon />,
       path: "/mermas",
+      roles: ["ADMINTIENDA", "EMPLEADO"],
+    },
+    {
+      text: "Compras",
+      icon: <ShoppingCartIcon />,
+      path: "/compras",
       roles: ["ADMINTIENDA", "EMPLEADO"],
     },
     {

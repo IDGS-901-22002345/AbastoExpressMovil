@@ -13,7 +13,7 @@ export async function createMovimientoAction({ request }) {
   };
 
   try {
-    const response = await httpAPIPost("/movInventario", data);
+    await httpAPIPost("/movInventario", data);
     
     const tipoTexto = data.tipo === "ENTRADA" ? "entrada de" : "salida de";
     toast.success(
