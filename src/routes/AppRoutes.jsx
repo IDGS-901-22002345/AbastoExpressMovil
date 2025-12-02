@@ -39,6 +39,9 @@ import Pedidos from "../pages/Pedidos";
 import { pedidosLoader } from "../context/Pedidos/pedidosLoader";
 import { perfilLoader } from "../context/perfil/perfilLoader";
 import { perfilActions } from "../context/perfil/perfilActions";
+import Mermas from "../pages/Mermas";
+import { mermaLoader } from "../context/merma/mermaLoader";
+import { createMermaAction } from "../context/merma/mermaAction";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -107,6 +110,12 @@ export const AppRoutes = createBrowserRouter([
       {
         path: "productos/:id/eliminar",
         action: deleteProductoAction,
+      },
+      {
+        path: "mermas",
+        element: <Mermas />,
+        loader: mermaLoader,
+        action: createMermaAction, // Maneja el POST para crear merma en la misma ruta
       },
       {
         path: "inventario",
