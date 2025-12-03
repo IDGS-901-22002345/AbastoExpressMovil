@@ -39,6 +39,12 @@ import Pedidos from "../pages/Pedidos";
 import { pedidosLoader } from "../context/Pedidos/pedidosLoader";
 import { perfilLoader } from "../context/perfil/perfilLoader";
 import { perfilActions } from "../context/perfil/perfilActions";
+import Mermas from "../pages/Mermas";
+import { mermaLoader } from "../context/merma/mermaLoader";
+import { createMermaAction } from "../context/merma/mermaAction";
+import Compras from "../pages/Compras";
+import { compraLoader } from "../context/compras/compraLoader";
+import { compraAction } from "../context/compras/compraAction";
 import Ventas from "../pages/Ventas";
 import { ventasLoader } from "../context/ventas/ventasLoader";
 import { pagarPedidoAction } from "../context/Pedidos/pedidoAction";
@@ -116,6 +122,18 @@ export const AppRoutes = createBrowserRouter([
       {
         path: "productos/:id/eliminar",
         action: deleteProductoAction,
+      },
+      {
+        path: "mermas",
+        element: <Mermas />,
+        loader: mermaLoader,
+        action: createMermaAction,
+      },
+      {
+        path: "compras",
+        element: <Compras />,
+        loader: compraLoader,
+        action: compraAction,
       },
       {
         path: "inventario",

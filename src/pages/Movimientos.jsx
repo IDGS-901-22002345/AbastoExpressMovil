@@ -18,12 +18,14 @@ import {
   Alert,
   Autocomplete,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+// Cambiamos el ícono de Add por uno de Ajustes/Edit para diferenciarlo
+import EditNoteIcon from "@mui/icons-material/EditNote"; 
 import RefreshIcon from "@mui/icons-material/Refresh";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData, useFetcher } from "react-router-dom";
 
+// Opcional: Podrías limitar esto en el backend o aquí, pero ENTRADA/SALIDA funcionan bien para ajustes
 const TIPOS_MOVIMIENTO = ["ENTRADA", "SALIDA"];
 
 const Movimientos = () => {
@@ -91,9 +93,10 @@ const Movimientos = () => {
     );
     submitFormData.append("tipo", formData.tipo);
     submitFormData.append("cantidad", formData.cantidad);
-    if (formData.razon) {
-      submitFormData.append("razon", formData.razon);
-    }
+    
+    // Si no pone razón, ponemos una por defecto para identificar que fue manual
+    const razonFinal = formData.razon || "Ajuste manual de inventario";
+    submitFormData.append("razon", razonFinal);
 
     fetcher.submit(submitFormData, {
       method: "post",
@@ -138,6 +141,13 @@ const Movimientos = () => {
       ),
     },
     {
+        field: "cantidad", // Agregamos la columna cantidad que faltaba visualmente
+        headerName: "Cant.",
+        flex: 0.4,
+        headerClassName: "header-green",
+        align: "center",
+    },
+    {
       field: "acciones",
       headerName: "Acciones",
       flex: 0.4,
@@ -163,16 +173,17 @@ const Movimientos = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2 md:gap-0">
           <Typography variant="h4" className="text-green-700 font-bold">
-            Movimientos de Inventario
+            Historial de Movimientos
           </Typography>
           <div className="flex gap-2">
+            {/* CAMBIO: Texto y Color del botón para denotar que es una acción especial */}
             <Button
-              variant="contained"
-              color="success"
-              startIcon={<AddIcon />}
+              variant="outlined" 
+              color="warning" // Color naranja/ámbar para indicar precaución/ajuste
+              startIcon={<EditNoteIcon />}
               onClick={handleOpenCreate}
             >
-              Registrar Movimiento
+              Ajuste Manual
             </Button>
             <IconButton
               color="primary"
@@ -192,6 +203,7 @@ const Movimientos = () => {
             pageSizeOptions={[5, 10, 20]}
             initialState={{
               pagination: { paginationModel: { pageSize: 10, page: 0 } },
+              sorting: { sortModel: [{ field: 'createdAt', sort: 'desc' }] }, // Ordenar por fecha desc
             }}
             getRowId={(row) => row.id}
             sx={{
@@ -214,18 +226,24 @@ const Movimientos = () => {
         </div>
       </Paper>
 
-      {/* Modal Crear Movimiento */}
+      {/* Modal Crear Movimiento (AJUSTE) */}
       <Dialog
         open={openCreate}
         onClose={handleCloseCreate}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle className="text-green-700 font-bold">
-          Registrar Movimiento
+        <DialogTitle className="text-orange-700 font-bold flex items-center gap-2">
+          <EditNoteIcon />
+          Ajuste Manual de Inventario
         </DialogTitle>
         <form onSubmit={handleCreate}>
           <DialogContent>
+            <Alert severity="info" className="mb-4">
+              Usa esta opción solo para correcciones de inventario (conteo físico, errores). 
+              Para compras usa el módulo de <strong>Compras</strong> y para pérdidas el de <strong>Mermas</strong>.
+            </Alert>
+
             <Autocomplete
               options={productos || []}
               getOptionLabel={(option) => option?.nombre || ""}
@@ -250,15 +268,10 @@ const Movimientos = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Producto"
+                  label="Producto a Ajustar"
                   margin="normal"
                   required
                   placeholder="Buscar producto..."
-                  helperText={
-                    formData.productoId?.inventario?.stockActual !== undefined
-                      ? `Stock actual: ${formData.productoId.inventario.stockActual}`
-                      : "Selecciona un producto"
-                  }
                 />
               )}
               noOptionsText="No hay productos disponibles"
@@ -266,18 +279,15 @@ const Movimientos = () => {
             />
 
             <FormControl fullWidth margin="normal" required>
-              <InputLabel>Tipo de Movimiento</InputLabel>
+              <InputLabel>Tipo de Ajuste</InputLabel>
               <Select
                 name="tipo"
                 value={formData.tipo}
                 onChange={handleInputChange}
-                label="Tipo de Movimiento"
+                label="Tipo de Ajuste"
               >
-                {TIPOS_MOVIMIENTO.map((tipo) => (
-                  <MenuItem key={tipo} value={tipo}>
-                    {tipo}
-                  </MenuItem>
-                ))}
+                <MenuItem value="ENTRADA">ENTRADA (Agregar stock)</MenuItem>
+                <MenuItem value="SALIDA">SALIDA (Quitar stock)</MenuItem>
               </Select>
             </FormControl>
 
@@ -291,40 +301,35 @@ const Movimientos = () => {
               margin="normal"
               required
               inputProps={{ min: "1", step: "1" }}
-              placeholder="Ej: 10"
+              placeholder="Ej: 5"
             />
 
             <TextField
-              label="Razón / Motivo"
+              label="Motivo del Ajuste"
               name="razon"
               value={formData.razon}
               onChange={handleInputChange}
               fullWidth
+              required
               margin="normal"
               multiline
-              rows={3}
-              placeholder="Ej: Compra a proveedor, Venta, Ajuste de inventario..."
+              rows={2}
+              placeholder="Ej: Error de conteo en inventario físico"
             />
 
-            {formData.tipo === "SALIDA" && (
-              <Alert severity="warning" className="mt-3">
-                Asegúrate de que hay suficiente stock antes de registrar una
-                salida.
-              </Alert>
-            )}
           </DialogContent>
           <DialogActions className="p-4">
             <Button onClick={handleCloseCreate} color="inherit">
               Cancelar
             </Button>
-            <Button type="submit" variant="contained" color="success">
-              Registrar
+            <Button type="submit" variant="contained" color="warning">
+              Aplicar Ajuste
             </Button>
           </DialogActions>
         </form>
       </Dialog>
 
-      {/* Modal Detalle Movimiento */}
+      {/* Modal Detalle Movimiento (Sin cambios mayores, solo visual) */}
       <Dialog
         open={openDetail}
         onClose={handleCloseDetail}
@@ -384,19 +389,21 @@ const Movimientos = () => {
 
               <div>
                 <Typography variant="body2" color="text.secondary">
-                  Razón
+                  Razón / Referencia
                 </Typography>
-                <Typography variant="body1">
-                  {selectedMovimiento.razon || "Sin especificar"}
-                </Typography>
+                <Paper variant="outlined" className="p-2 bg-gray-50 mt-1">
+                    <Typography variant="body2">
+                    {selectedMovimiento.razon || "Sin especificar"}
+                    </Typography>
+                </Paper>
               </div>
 
               <div>
                 <Typography variant="body2" color="text.secondary">
-                  Empleado que registró
+                  Registrado por
                 </Typography>
                 <Typography variant="body1" className="font-semibold">
-                  {selectedMovimiento.empleado?.nombreCompleto || "N/A"}
+                  {selectedMovimiento.empleado?.nombreCompleto || "Sistema / Admin"}
                 </Typography>
               </div>
             </div>
