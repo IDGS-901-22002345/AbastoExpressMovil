@@ -25,6 +25,7 @@ import {
   People as PeopleIcon,
   ProductionQuantityLimits as ProductosIcon,
   ShoppingCartCheckout as PedidosIcon,
+  ReceiptLong as VentasIcon,
   CompareArrows as MovimientosIcon,
   Store as TiendasIcon,
   ReportProblem as ReportProblemIcon,
@@ -69,6 +70,12 @@ export default function AppLayout() {
       icon: <ProductosIcon />,
       path: "/productos",
       roles: ["ADMINTIENDA"],
+    },
+    {
+      text: "Ventas",
+      icon: <VentasIcon />,
+      path: "/ventas",
+      roles: ["ADMINTIENDA", "EMPLEADO"],
     },
     {
       text: "Pedidos",

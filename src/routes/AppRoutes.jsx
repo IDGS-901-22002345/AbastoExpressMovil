@@ -45,6 +45,9 @@ import { createMermaAction } from "../context/merma/mermaAction";
 import Compras from "../pages/Compras";
 import { compraLoader } from "../context/compras/compraLoader";
 import { compraAction } from "../context/compras/compraAction";
+import Ventas from "../pages/Ventas";
+import { ventasLoader } from "../context/ventas/ventasLoader";
+import { pagarPedidoAction } from "../context/Pedidos/pedidoAction";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -93,6 +96,12 @@ export const AppRoutes = createBrowserRouter([
         path: "pedidos",
         element: <Pedidos />,
         loader: pedidosLoader,
+        action: pagarPedidoAction,
+      },
+      {
+        path: "ventas",
+        element: <Ventas />,
+        loader: ventasLoader,
       },
       {
         path: "productos",

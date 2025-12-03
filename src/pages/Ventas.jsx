@@ -12,16 +12,17 @@ import {
   DialogContent,
   DialogActions,
   Box,
+  MenuItem,
 } from "@mui/material";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { DataGrid } from "@mui/x-data-grid";
 import { useLoaderData } from "react-router-dom";
-import PedidoModal from "../components/pedido/PedidoModal";
+import PedidoModal from "../components/Ventas/PedidoModal";
 
-const Pedidos = () => {
-  const { user, pedidos } = useLoaderData();
+const Ventas = () => {
+  const pedidos = useLoaderData();
   const isMobile = useMediaQuery("(max-width:768px)");
 
   const [openView, setOpenView] = useState(false);
@@ -49,14 +50,10 @@ const Pedidos = () => {
 
   const formatEstado = (estado) => {
     switch (estado) {
-      case "PENDIENTE":
-        return "Pendiente";
       case "COMPLETADO":
         return "Completado";
       case "CANCELADO":
         return "Cancelado";
-      case "EN_PROCESO":
-        return "En Proceso";
       default:
         return estado;
     }
@@ -67,7 +64,7 @@ const Pedidos = () => {
       case "PAGADO":
         return "Pagado";
       case "NO_PAGADO":
-        return "No Pagado";
+        return "No pagado";
       default:
         return estado;
     }
@@ -75,12 +72,10 @@ const Pedidos = () => {
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case "PENDIENTE":
-        return "warning";
       case "COMPLETADO":
         return "success";
-      case "EN_PROCESO":
-        return "info";
+      case "CANCELADO":
+        return "error";
       default:
         return "default";
     }
@@ -111,9 +106,11 @@ const Pedidos = () => {
       : true;
 
     const fechaPedido = new Date(p.createdAt);
+
     const matchesFechaInicio = fechaInicio
       ? fechaPedido >= new Date(fechaInicio)
       : true;
+
     const matchesFechaFin = fechaFin
       ? fechaPedido <= new Date(fechaFin + "T23:59:59")
       : true;
@@ -139,7 +136,7 @@ const Pedidos = () => {
   const columns = [
     {
       field: "id",
-      headerName: "Pedido",
+      headerName: "Venta",
       flex: 0.4,
       headerClassName: "header-green",
     },
@@ -185,11 +182,17 @@ const Pedidos = () => {
       headerClassName: "header-green",
       renderCell: (params) => {
         const total = Number(params.row.total);
+        const color =
+          params.row.estadoCompra === "PAGADO"
+            ? "success"
+            : params.row.estadoCompra === "NO_PAGADO"
+            ? "error"
+            : "default";
 
         return (
           <Chip
             label={`$${isNaN(total) ? "0.00" : total.toFixed(2)}`}
-            color="success"
+            color={color}
             size="small"
             variant="outlined"
           />
@@ -221,7 +224,7 @@ const Pedidos = () => {
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
           <Typography variant="h4" className="text-green-700 font-bold">
-            Pedidos
+            Ventas
           </Typography>
 
           <div className="flex items-center gap-3">
@@ -241,12 +244,10 @@ const Pedidos = () => {
               onClick={() =>
                 setEstado(
                   estado === ""
-                    ? "PENDIENTE"
-                    : estado === "PENDIENTE"
-                    ? "EN_PROCESO"
-                    : estado === "EN_PROCESO"
                     ? "COMPLETADO"
                     : estado === "COMPLETADO"
+                    ? "CANCELADO"
+                    : ""
                 )
               }
               onDelete={estado ? () => setEstado("") : undefined}
@@ -364,15 +365,13 @@ const Pedidos = () => {
         </DialogActions>
       </Dialog>
 
-      {/* MODAL PEDIDO */}
       <PedidoModal
         open={openView}
         onClose={handleCloseView}
         pedido={selectedPedido}
-        user={user}
       />
     </>
   );
 };
 
-export default Pedidos;
+export default Ventas;
