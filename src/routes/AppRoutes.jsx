@@ -39,6 +39,9 @@ import Pedidos from "../pages/Pedidos";
 import { pedidosLoader } from "../context/Pedidos/pedidosLoader";
 import { perfilLoader } from "../context/perfil/perfilLoader";
 import { perfilActions } from "../context/perfil/perfilActions";
+import Ventas from "../pages/Ventas";
+import { ventasLoader } from "../context/ventas/ventasLoader";
+import { pagarPedidoAction } from "../context/Pedidos/pedidoAction";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -87,6 +90,12 @@ export const AppRoutes = createBrowserRouter([
         path: "pedidos",
         element: <Pedidos />,
         loader: pedidosLoader,
+        action: pagarPedidoAction,
+      },
+      {
+        path: "ventas",
+        element: <Ventas />,
+        loader: ventasLoader,
       },
       {
         path: "productos",
