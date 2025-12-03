@@ -63,7 +63,7 @@ export default function AppLayout() {
       text: "Dashboard",
       icon: <DashboardIcon />,
       path: "/",
-      roles: ["ADMINTIENDA", "EMPLEADO"],
+      roles: ["ADMINTIENDA", "EMPLEADO", "SUPERADMIN"],
     },
     {
       text: "Productos",
