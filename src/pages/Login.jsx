@@ -22,7 +22,7 @@ export default function Login() {
       >
         <Box className="flex justify-center mb-8">
           <img
-            src="/vite.svg"
+            src="/abastoexpress_Logo.png"
             alt="Logo"
             className="w-20 h-20 opacity-90 hover:scale-105 transition-transform duration-300"
           />
